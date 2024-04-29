@@ -1676,6 +1676,7 @@ public interface VirtualMachine {
         public static VirtualMachine attach(String processId, int timeout, Dispatcher dispatcher) throws IOException {
             File directory = new File(System.getProperty(IBM_TEMPORARY_FOLDER, dispatcher.getTemporaryFolder(processId)), ".com_ibm_tools_attach");
             RandomAccessFile attachLock = new RandomAccessFile(new File(directory, "_attachlock"), "rw");
+            boolean instanaIgnoreUser = Boolean.parseBoolean(System.getProperty("INSTANA_IGNORE_USER", "true"));
             try {
                 FileLock attachLockLock = attachLock.getChannel().lock();
                 try {
@@ -1691,7 +1692,7 @@ public interface VirtualMachine {
                             long userId = dispatcher.userId();
                             virtualMachines = new ArrayList<Properties>();
                             for (File aVmFolder : vmFolder) {
-                                if (aVmFolder.isDirectory() && dispatcher.getOwnerIdOf(aVmFolder) == userId) {
+                                if (aVmFolder.isDirectory() && (instanaIgnoreUser || dispatcher.getOwnerIdOf(aVmFolder) == userId)) {
                                     File attachInfo = new File(aVmFolder, "attachInfo");
                                     if (attachInfo.isFile()) {
                                         Properties virtualMachine = new Properties();
